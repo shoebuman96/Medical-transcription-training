@@ -1,4 +1,4 @@
-const SCORE_ENDPOINT = "";
+const SCORE_ENDPOINT = "https://script.google.com/macros/s/AKfycbxtxTq30w5c0pYWrk8YH4kLOkp58IfErNKY-2ccv27qSkJDhUiOFypoxHVYPFyHRBgsbw/exec";
 const COURSE_FILE = "medical_transcription_v4_2.html";
 const learnerKey = "medicalCourse.learner";
 const resultsKey = "medicalCourse.results";
