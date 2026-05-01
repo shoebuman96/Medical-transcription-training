@@ -1,0 +1,275 @@
+:root {
+  color-scheme: dark;
+  --bg: #07111f;
+  --panel: #101827;
+  --panel-strong: #152237;
+  --line: rgba(255, 255, 255, 0.12);
+  --text: #f4f7fb;
+  --muted: #aab7cc;
+  --green: #38d39f;
+  --blue: #76a7ff;
+  --red: #ff6b6b;
+  --yellow: #f6c85f;
+  --shadow: 0 24px 80px rgba(0, 0, 0, 0.36);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(56, 211, 159, 0.22), transparent 32rem),
+    radial-gradient(circle at 85% 10%, rgba(118, 167, 255, 0.18), transparent 34rem),
+    linear-gradient(135deg, #07111f 0%, #0f172a 54%, #09111f 100%);
+  color: var(--text);
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.portal {
+  width: min(1180px, calc(100% - 32px));
+  min-height: 100vh;
+  margin: 0 auto;
+}
+
+.login-view {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: 32px;
+  align-items: center;
+  padding: 32px 0;
+}
+
+.brand-mark {
+  width: 68px;
+  height: 68px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 28px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, var(--green), var(--blue));
+  color: #04111e;
+  font-size: 1.25rem;
+  font-weight: 900;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: var(--green);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.hero-copy h1 {
+  max-width: 760px;
+  margin: 0;
+  font-size: clamp(2.6rem, 6vw, 5.8rem);
+  line-height: 0.96;
+}
+
+.hero-copy p {
+  max-width: 620px;
+  color: var(--muted);
+  font-size: 1.08rem;
+  line-height: 1.7;
+}
+
+.login-card,
+.course-frame-card,
+.score-panel article,
+.topbar {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(16, 24, 39, 0.86);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
+}
+
+.login-card {
+  display: grid;
+  gap: 18px;
+  padding: 24px;
+}
+
+.login-card h2,
+.course-frame-card h2 {
+  margin: 0;
+  font-size: 1.55rem;
+}
+
+.muted,
+.helper-text {
+  color: var(--muted);
+}
+
+label {
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+input,
+select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  outline: none;
+  background: #0b1220;
+  color: var(--text);
+  padding: 0.85rem 0.9rem;
+}
+
+input:focus,
+select:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 4px rgba(118, 167, 255, 0.14);
+}
+
+.primary-button,
+.ghost-button,
+.ghost-link {
+  min-height: 2.75rem;
+  border-radius: 8px;
+  font-weight: 850;
+}
+
+.primary-button {
+  border: 0;
+  background: linear-gradient(135deg, var(--green), var(--blue));
+  color: #04111e;
+}
+
+.ghost-button,
+.ghost-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
+  padding: 0 1rem;
+  text-decoration: none;
+}
+
+.course-view {
+  padding: 24px 0 40px;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 16px;
+}
+
+.topbar h1 {
+  margin: 0;
+  font-size: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.topbar-actions,
+.frame-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.status-pill {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  padding: 0.65rem 0.9rem;
+  font-size: 0.82rem;
+}
+
+.score-panel {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.score-panel article {
+  padding: 16px;
+}
+
+.score-panel span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.score-panel strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 2rem;
+}
+
+.course-frame-card {
+  padding: 16px;
+}
+
+iframe {
+  width: 100%;
+  height: 78vh;
+  min-height: 620px;
+  margin-top: 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.helper-text {
+  margin: 12px 0 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 760px) {
+  .portal {
+    width: min(100% - 20px, 1180px);
+  }
+
+  .login-view,
+  .score-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  iframe {
+    height: 70vh;
+    min-height: 520px;
+  }
+}
