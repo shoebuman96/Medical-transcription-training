@@ -81,8 +81,11 @@ function startWatchingCourseFrame() {
     upgradeCourseDesign(frameDocument);
     wireCourseSelectionState(frameDocument);
     wireMissingAnswerHighlighter(frameDocument);
+    restoreCourseProgress(frameDocument);
+    addTesterShortcuts(frameDocument);
 
     const observer = new MutationObserver(() => {
+      persistCourseProgress(frameDocument);
       captureScoreFromFrame(frameDocument);
     });
 
@@ -379,6 +382,13 @@ function upgradeCourseDesign(frameDocument) {
       background: #ffffff;
     }
 
+    .portal-test-shortcut {
+      margin-top: 12px !important;
+      border-style: dashed !important;
+      border-color: #4f86f7 !important;
+      color: #12366f !important;
+    }
+
     @media (max-width: 640px) {
       #app {
         padding: 16px 12px 28px;
@@ -446,6 +456,76 @@ function wireMissingAnswerHighlighter(frameDocument) {
 
     originalAlert(message);
   };
+}
+
+function courseProgressKey() {
+  const learner = getLearner();
+  return `medicalCourse.progress.${learner?.username || "guest"}.${learner?.locale || "unknown"}`;
+}
+
+function restoreCourseProgress(frameDocument) {
+  const frameWindow = frameDocument.defaultView;
+
+  if (!frameWindow || !frameWindow.completed || !frameWindow.T || frameWindow.portalProgressRestored) {
+    return;
+  }
+
+  frameWindow.portalProgressRestored = true;
+  const savedProgress = JSON.parse(localStorage.getItem(courseProgressKey()) || "[]");
+
+  savedProgress.forEach((moduleId) => {
+    frameWindow.completed.add(moduleId);
+  });
+
+  if (typeof frameWindow.updateProgress === "function") {
+    frameWindow.updateProgress();
+  }
+
+  if (typeof frameWindow.renderModuleGrid === "function") {
+    frameWindow.renderModuleGrid();
+  }
+}
+
+function persistCourseProgress(frameDocument) {
+  const frameWindow = frameDocument.defaultView;
+
+  if (!frameWindow || !frameWindow.completed) {
+    return;
+  }
+
+  localStorage.setItem(courseProgressKey(), JSON.stringify([...frameWindow.completed]));
+}
+
+function addTesterShortcuts(frameDocument) {
+  const frameWindow = frameDocument.defaultView;
+  const launchWrap = frameDocument.querySelector("#test-launch-wrap");
+
+  if (!frameWindow || !launchWrap || launchWrap.querySelector(".portal-test-shortcut")) {
+    return;
+  }
+
+  const shortcut = frameDocument.createElement("button");
+  shortcut.className = "btn portal-test-shortcut";
+  shortcut.type = "button";
+  shortcut.textContent = "Show final test";
+  shortcut.addEventListener("click", () => {
+    if (frameWindow.T?.[frameWindow.lang]?.mods && frameWindow.completed) {
+      frameWindow.T[frameWindow.lang].mods.forEach((module) => {
+        frameWindow.completed.add(module.id);
+      });
+      persistCourseProgress(frameDocument);
+    }
+
+    if (typeof frameWindow.renderModuleGrid === "function") {
+      frameWindow.renderModuleGrid();
+    }
+
+    if (typeof frameWindow.openFinalTest === "function") {
+      frameWindow.openFinalTest();
+    }
+  });
+
+  launchWrap.appendChild(shortcut);
 }
 
 function highlightMissingQuestions(frameDocument) {
