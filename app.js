@@ -1,4 +1,4 @@
-const SCORE_ENDPOINT = "https://script.google.com/macros/s/.../exec";
+const SCORE_ENDPOINT = "https://script.google.com/macros/s/YOUR_URL_HERE/exec";
 const COURSE_FILE = "medical_transcription_v4_2.html";
 const learnerKey = "medicalCourse.learner";
 const resultsKey = "medicalCourse.results";
@@ -57,6 +57,12 @@ function renderStats() {
   latestStatus.textContent = results[0].status;
 }
 
+function renderSheetStatus() {
+  sheetStatus.textContent = SCORE_ENDPOINT
+    ? "Google Sheet connected"
+    : "Google Sheet not connected yet";
+}
+
 function startWatchingCourseFrame() {
   courseFrame.addEventListener("load", () => {
     let frameDocument;
@@ -73,6 +79,8 @@ function startWatchingCourseFrame() {
     }
 
     upgradeCourseDesign(frameDocument);
+    wireCourseSelectionState(frameDocument);
+    wireMissingAnswerHighlighter(frameDocument);
 
     const observer = new MutationObserver(() => {
       captureScoreFromFrame(frameDocument);
@@ -242,28 +250,128 @@ function upgradeCourseDesign(frameDocument) {
       color: #ffffff !important;
     }
 
+    .quiz-q {
+      padding: 18px !important;
+    }
+
+    .quiz-q.portal-missing {
+      border-color: #f79009 !important;
+      background: #fff8eb !important;
+      box-shadow: 0 0 0 4px rgba(247, 144, 9, 0.14), 0 12px 34px rgba(16, 24, 40, 0.08);
+    }
+
+    .quiz-q.portal-missing::before {
+      content: "Answer required";
+      display: inline-flex;
+      width: fit-content;
+      margin-bottom: 10px;
+      border-radius: 999px;
+      background: #f79009;
+      color: #ffffff;
+      padding: 4px 10px;
+      font-size: 0.76rem;
+      font-weight: 850;
+    }
+
     .quiz-q p {
       color: #111827;
-      font-size: 1rem;
+      font-size: 1.05rem;
       line-height: 1.5;
+      margin-bottom: 14px;
+      font-weight: 700;
     }
 
     .quiz-opt {
+      position: relative;
+      display: flex !important;
+      align-items: center;
+      gap: 12px;
       margin: 8px 0;
-      padding: 12px 14px;
+      padding: 14px 16px 14px 48px;
       text-align: left;
+      font-size: 0.95rem;
+      line-height: 1.45;
+      transition: transform 0.15s, border-color 0.15s, background 0.15s, box-shadow 0.15s;
+    }
+
+    .quiz-opt::before {
+      content: "";
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #98a7bc;
+      border-radius: 50%;
+      transform: translateY(-50%);
+      background: #ffffff;
+    }
+
+    .quiz-opt:hover:not(.disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 28px rgba(16, 24, 40, 0.1);
+    }
+
+    .quiz-opt.portal-selected {
+      border-color: #4f86f7 !important;
+      background: #eef5ff !important;
+      color: #12366f !important;
+      font-weight: 800 !important;
+      box-shadow: 0 10px 28px rgba(79, 134, 247, 0.16);
+    }
+
+    .quiz-opt.portal-selected::before {
+      border-color: #4f86f7;
+      background: #4f86f7;
+      box-shadow: inset 0 0 0 4px #ffffff;
+    }
+
+    .quiz-opt.disabled {
+      cursor: default;
+      opacity: 1;
     }
 
     .quiz-opt.correct {
       background: #eaf8f2 !important;
       border-color: #1D9E75 !important;
       color: #0f5138 !important;
+      font-weight: 750;
+    }
+
+    .quiz-opt.correct::before {
+      content: "✓";
+      display: grid;
+      place-items: center;
+      border-color: #1D9E75;
+      background: #1D9E75;
+      color: #ffffff;
+      font-size: 0.78rem;
+      font-weight: 900;
     }
 
     .quiz-opt.wrong {
       background: #fff1f1 !important;
       border-color: #d92d20 !important;
       color: #7a271a !important;
+      font-weight: 750;
+    }
+
+    .quiz-opt.wrong::before {
+      content: "×";
+      display: grid;
+      place-items: center;
+      border-color: #d92d20;
+      background: #d92d20;
+      color: #ffffff;
+      font-size: 0.9rem;
+      font-weight: 900;
+    }
+
+    .feedback {
+      margin-top: 12px;
+      border-radius: 10px;
+      padding: 10px 12px;
+      line-height: 1.45;
     }
 
     .score-circle {
@@ -284,6 +392,86 @@ function upgradeCourseDesign(frameDocument) {
   `;
 
   frameDocument.head.appendChild(style);
+}
+
+function wireCourseSelectionState(frameDocument) {
+  if (frameDocument.body.dataset.portalSelectionWired === "true") {
+    return;
+  }
+
+  frameDocument.body.dataset.portalSelectionWired = "true";
+
+  frameDocument.addEventListener("click", (event) => {
+    const selectedOption = event.target;
+
+    if (!selectedOption.classList?.contains("quiz-opt")) {
+      return;
+    }
+
+    if (selectedOption.classList.contains("disabled")) {
+      return;
+    }
+
+    const question = selectedOption.closest(".quiz-q");
+
+    if (!question) {
+      return;
+    }
+
+    question.querySelectorAll(".quiz-opt").forEach((option) => {
+      option.classList.remove("portal-selected");
+    });
+
+    question.classList.remove("portal-missing");
+    selectedOption.classList.add("portal-selected");
+  }, true);
+}
+
+function wireMissingAnswerHighlighter(frameDocument) {
+  const frameWindow = frameDocument.defaultView;
+
+  if (!frameWindow || frameWindow.portalAlertWired) {
+    return;
+  }
+
+  frameWindow.portalAlertWired = true;
+  const originalAlert = frameWindow.alert.bind(frameWindow);
+
+  frameWindow.alert = (message) => {
+    if (typeof message === "string" && message.includes("remaining question")) {
+      highlightMissingQuestions(frameDocument);
+      originalAlert(`${message}\n\nMissing question(s) are highlighted in orange.`);
+      return;
+    }
+
+    originalAlert(message);
+  };
+}
+
+function highlightMissingQuestions(frameDocument) {
+  const questions = [...frameDocument.querySelectorAll(".quiz-q")];
+
+  questions.forEach((question) => {
+    const hasSelectedCard = question.querySelector(".quiz-opt.portal-selected");
+    const hasOriginalSelection = [...question.querySelectorAll(".quiz-opt")].some((option) => {
+      return option.style.fontWeight === "500" || option.style.fontWeight === "bold";
+    });
+    const alreadyAnsweredAndChecked = question.querySelector(".quiz-opt.correct,.quiz-opt.wrong");
+
+    question.classList.toggle(
+      "portal-missing",
+      !hasSelectedCard && !hasOriginalSelection && !alreadyAnsweredAndChecked
+    );
+  });
+
+  const firstMissing = frameDocument.querySelector(".quiz-q.portal-missing");
+
+  if (firstMissing) {
+    firstMissing.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
+  }
 }
 
 function captureScoreFromFrame(frameDocument) {
@@ -370,6 +558,7 @@ logoutButton.addEventListener("click", () => {
 });
 
 startWatchingCourseFrame();
+renderSheetStatus();
 
 const savedLearner = getLearner();
 
