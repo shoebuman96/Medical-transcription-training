@@ -532,17 +532,20 @@ function highlightMissingQuestions(frameDocument) {
   const questions = [...frameDocument.querySelectorAll(".quiz-q")];
 
   questions.forEach((question) => {
-    const hasSelectedCard = question.querySelector(".quiz-opt.portal-selected");
-    const hasOriginalSelection = [...question.querySelectorAll(".quiz-opt")].some((option) => {
-      return option.style.fontWeight === "500" || option.style.fontWeight === "bold";
-    });
-    const alreadyAnsweredAndChecked = question.querySelector(".quiz-opt.correct,.quiz-opt.wrong");
+    const hasCheckedInput = question.querySelector("input[type='radio']:checked");
 
-    question.classList.toggle(
-      "portal-missing",
-      !hasSelectedCard && !hasOriginalSelection && !alreadyAnsweredAndChecked
-    );
+    question.classList.toggle("portal-missing", !hasCheckedInput);
   });
+
+  const firstMissing = frameDocument.querySelector(".quiz-q.portal-missing");
+
+  if (firstMissing) {
+    firstMissing.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
+  }
+}
 
   const firstMissing = frameDocument.querySelector(".quiz-q.portal-missing");
 
