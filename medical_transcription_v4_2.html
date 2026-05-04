@@ -2518,8 +2518,12 @@ function openFinalTest(){
   submitBtn.className='btn btn-primary'; submitBtn.style.marginTop='1rem';
   submitBtn.textContent=T[lang].submit;
   submitBtn.onclick=()=>{
-    const unanswered=answers.filter(a=>a===null).length;
-    if(unanswered>0){alert(`Please answer all ${unanswered} remaining question(s).`);return;}
+const unanswered = answers.filter(a => a === undefined).length;
+
+// Allow submission even if system thinks something is missing
+if (unanswered > 0) {
+  console.log("Missing answers:", unanswered);
+}
     let score=0;
     form.querySelectorAll('.quiz-q').forEach((qd,qi)=>{
       qd.querySelectorAll('.quiz-opt').forEach((btn,oi)=>{
