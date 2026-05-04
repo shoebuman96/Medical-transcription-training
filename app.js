@@ -59,7 +59,7 @@ function renderStats() {
 
 function renderSheetStatus() {
   sheetStatus.textContent = SCORE_ENDPOINT
-    ? "Google Sheet connected"
+    ? "✓ Google Sheet connected"
     : "Google Sheet not connected yet";
 }
 
@@ -287,27 +287,33 @@ function upgradeCourseDesign(frameDocument) {
     .quiz-opt {
       position: relative;
       display: flex !important;
-      align-items: center;
+      align-items: flex-start !important;
       gap: 12px;
       margin: 8px 0;
-      padding: 14px 16px 14px 48px;
+      padding: 12px 12px 12px 44px;
       text-align: left;
       font-size: 0.95rem;
       line-height: 1.45;
       transition: transform 0.15s, border-color 0.15s, background 0.15s, box-shadow 0.15s;
+      width: 100%;
+      box-sizing: border-box;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      white-space: normal;
     }
 
     .quiz-opt::before {
       content: "";
       position: absolute;
-      left: 16px;
-      top: 50%;
+      left: 12px;
+      top: 14px;
       width: 16px;
       height: 16px;
       border: 2px solid #98a7bc;
       border-radius: 50%;
-      transform: translateY(-50%);
+      transform: none;
       background: #ffffff;
+      flex-shrink: 0;
     }
 
     .quiz-opt:hover:not(.disabled) {
@@ -473,10 +479,12 @@ function restoreCourseProgress(frameDocument) {
   frameWindow.portalProgressRestored = true;
   const savedProgress = JSON.parse(localStorage.getItem(courseProgressKey()) || "[]");
 
+  // Restore each completed module
   savedProgress.forEach((moduleId) => {
     frameWindow.completed.add(moduleId);
   });
 
+  // Trigger UI update to reflect restored progress
   if (typeof frameWindow.updateProgress === "function") {
     frameWindow.updateProgress();
   }
@@ -507,7 +515,7 @@ function addTesterShortcuts(frameDocument) {
   const shortcut = frameDocument.createElement("button");
   shortcut.className = "btn portal-test-shortcut";
   shortcut.type = "button";
-  shortcut.textContent = "Show final test";
+  shortcut.textContent = "Show final test (skip modules)";
   shortcut.addEventListener("click", () => {
     if (frameWindow.T?.[frameWindow.lang]?.mods && frameWindow.completed) {
       frameWindow.T[frameWindow.lang].mods.forEach((module) => {
@@ -532,20 +540,17 @@ function highlightMissingQuestions(frameDocument) {
   const questions = [...frameDocument.querySelectorAll(".quiz-q")];
 
   questions.forEach((question) => {
-    const hasCheckedInput = question.querySelector("input[type='radio']:checked");
-
-    question.classList.toggle("portal-missing", !hasCheckedInput);
-  });
-
-  const firstMissing = frameDocument.querySelector(".quiz-q.portal-missing");
-
-  if (firstMissing) {
-    firstMissing.scrollIntoView({
-      behavior: "smooth",
-      block: "center"
+    const hasSelectedCard = question.querySelector(".quiz-opt.portal-selected");
+    const hasOriginalSelection = [...question.querySelectorAll(".quiz-opt")].some((option) => {
+      return option.style.fontWeight === "500" || option.style.fontWeight === "bold";
     });
-  }
-}
+    const alreadyAnsweredAndChecked = question.querySelector(".quiz-opt.correct,.quiz-opt.wrong");
+
+    question.classList.toggle(
+      "portal-missing",
+      !hasSelectedCard && !hasOriginalSelection && !alreadyAnsweredAndChecked
+    );
+  });
 
   const firstMissing = frameDocument.querySelector(".quiz-q.portal-missing");
 
@@ -617,7 +622,7 @@ async function submitScore(result) {
       body: JSON.stringify(result)
     });
 
-    sheetStatus.textContent = "Score sent to Google Sheets.";
+    sheetStatus.textContent = "✓ Score sent to Google Sheets.";
   } catch (error) {
     sheetStatus.textContent = "Could not send score. It is saved locally in this browser.";
   }
